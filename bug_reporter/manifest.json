@@ -1,0 +1,19 @@
+{
+    "manifest_version": 3,
+    "name": "Bug Reporter",
+    "version": "0.1",
+    "description": "버그 리포팅을 도와주는 확장 프로그램",
+    "permissions": [
+        "activeTab",
+        "scripting",
+        "storage"
+    ],
+    "action": {
+        "default_popup": "popup.html"
+    },
+    "icons": {
+        "16": "images/icon16.png",
+        "48": "images/icon48.png",
+        "128": "images/icon128.png"
+    }
+}
