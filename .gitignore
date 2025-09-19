@@ -19,5 +19,8 @@ eggs/
 *.egg
 
 # My specific ignore rule
+_*
 _*/
+@*
+@*/
 /simple memo
