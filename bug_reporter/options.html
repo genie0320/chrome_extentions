@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="KO">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Bug Reporter 설정</title>
+		<style>
+			body {
+				font-family: sans-serif;
+				width: 400px;
+				padding: 1em;
+			}
+			.form-group {
+				margin-bottom: 1em;
+			}
+			label {
+				display: block;
+				margin-bottom: 0.5em;
+			}
+			input {
+				width: 100%;
+				padding: 0.5em;
+				box-sizing: border-box;
+			}
+			button {
+				padding: 0.7em 1.5em;
+			}
+			#status {
+				margin-top: 1em;
+				color: green;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>설정</h1>
+		<div class="form-group">
+			<label for="userName">등록자 이름</label>
+			<input type="text" id="userName" />
+		</div>
+		<div class="form-group">
+			<label for="userEmail">이메일</label>
+			<input type="email" id="userEmail" />
+		</div>
+		<button id="saveBtn">저장</button>
+		<div id="status"></div>
+		<script src="options.js"></script>
+	</body>
+</html>

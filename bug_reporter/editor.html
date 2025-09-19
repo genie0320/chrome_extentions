@@ -1,72 +1,167 @@
 <html lang="KO"></html>
 <html>
 	<head>
+		<title>Bug Report Editor</title>
 		<meta charset="UTF-8" />
 		<style>
-			body,
-			html {
+			body {
+				font-family: sans-serif;
 				margin: 0;
-				padding: 0;
+				padding: 1.5em;
+				background-color: #f4f4f4;
+			}
+			.container {
+				display: flex;
+				gap: 2em;
+			}
+			.editor-panel {
+				flex: 2;
+			}
+			.form-panel {
+				flex: 1;
+				background: white;
+				padding: 1.5em;
+				border-radius: 8px;
+				box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+			}
+			#toolbar {
+				margin-bottom: 1em;
+			}
+			#toolbar button,
+			#toolbar label {
+				margin-right: 0.5em;
 			}
 			#editor-container {
-				border: 2px dashed grey;
+				border: 2px dashed #ccc;
+				display: inline-block;
+			}
+			h1,
+			h3 {
+				margin-top: 0;
+			}
+			.form-group {
+				margin-bottom: 1em;
+			}
+			.form-group label {
+				display: block;
+				margin-bottom: 0.5em;
+				font-weight: bold;
+			}
+			.form-group input,
+			.form-group select,
+			.form-group textarea {
+				width: 100%;
+				padding: 0.5em;
+				box-sizing: border-box;
+				border: 1px solid #ccc;
+				border-radius: 4px;
+			}
+			.form-group textarea {
+				min-height: 100px;
+				resize: vertical;
+			}
+			.form-group input[disabled] {
+				background-color: #eee;
+			}
+			.action-buttons {
+				margin-top: 1.5em;
+				display: flex;
+				gap: 1em;
+			}
+			.action-buttons button {
+				width: 100%;
+				padding: 0.8em;
+				border: none;
+				border-radius: 4px;
+				font-size: 1em;
+				cursor: pointer;
+			}
+			#saveBtn {
+				background-color: #007bff;
+				color: white;
+			}
+			#listBtn {
+				background-color: #6c757d;
+				color: white;
 			}
 		</style>
 	</head>
 	<body>
-		<div>
-			<h1>Bug Report Editor</h1>
-			<p>원하는 도구를 선택하고, 이미지 위에 버그를 표시하세요.</p>
-		</div>
-
-		<div id="toolbar">
-			<button id="selectMode">선택/이동</button>
-			<button id="drawMode">자유롭게 그리기</button>
-			<button id="rectMode">사각형</button>
-			<label
-				>선 굵기:
-				<input
-					type="number"
-					id="strokeWidth"
-					value="5"
-					min="1"
-					max="50"
-					style="width: 50px"
-			/></label>
-			<label
-				>테두리: <input type="color" id="rectBorderColor" value="#FF0000"
-			/></label>
-			<label
-				>채우기: <input type="color" id="rectFillColor" value="#FFFF00"
-			/></label>
-			<button id="numberMode">숫자</button>
-		</div>
-
-		<div id="editor-container">
-			<canvas id="canvas"></canvas>
+		<div class="container">
+			<div class="editor-panel">
+				<h1>Bug Report Editor</h1>
+				<div id="toolbar">
+					<button id="selectMode">선택/이동</button>
+					<button id="drawMode">그리기</button>
+					<button id="rectMode">사각형</button>
+					<label
+						>선 굵기:
+						<input
+							type="number"
+							id="strokeWidth"
+							value="5"
+							min="1"
+							max="50"
+							style="width: 50px"
+					/></label>
+					<label
+						>테두리: <input type="color" id="rectBorderColor" value="#FF0000"
+					/></label>
+					<label
+						>채우기: <input type="color" id="rectFillColor" value="#FFFF00"
+					/></label>
+					<button id="numberMode">숫자</button>
+				</div>
+				<div id="editor-container">
+					<canvas id="canvas"></canvas>
+				</div>
+			</div>
+			<div class="form-panel">
+				<h3>리포트 상세 내용</h3>
+				<div class="form-group">
+					<label for="pageUrl">페이지 URL</label>
+					<input type="text" id="pageUrl" disabled />
+				</div>
+				<div class="form-group">
+					<label for="captureTime">캡처 시간</label>
+					<input type="text" id="captureTime" disabled />
+				</div>
+				<div class="form-group">
+					<label for="reportTitle">제목</label>
+					<input
+						type="text"
+						id="reportTitle"
+						placeholder="예: 로그인 버튼 오류" />
+				</div>
+				<div class="form-group">
+					<label for="reportCategory">분류</label>
+					<select id="reportCategory">
+						<option value="function">기능 오류</option>
+						<option value="usability">사용성 개선</option>
+						<option value="ui">UI 깨짐</option>
+						<option value="typo">오탈자</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label for="problemDesc">문제점 기술</label>
+					<textarea
+						id="problemDesc"
+						placeholder="어떤 문제가 발생했는지 순서대로 설명해주세요."></textarea>
+				</div>
+				<div class="form-group">
+					<label for="expectedResult">원하는 결과</label>
+					<textarea
+						id="expectedResult"
+						placeholder="원래 어떤 결과가 나타나야 하는지 설명해주세요."></textarea>
+				</div>
+				<div class="action-buttons">
+					<button id="saveBtn">저장</button>
+					<button id="listBtn">목록 보기</button>
+				</div>
+			</div>
 		</div>
 
 		<script src="fabric.min.js"></script>
 		<script src="editor.js"></script>
-
-		<style>
-			body,
-			html {
-				margin: 0;
-				padding: 10px;
-				font-family: sans-serif;
-			}
-			#toolbar {
-				margin-bottom: 10px;
-			}
-			#toolbar button {
-				padding: 5px 10px;
-				font-size: 14px;
-			}
-			#editor-container {
-				border: 2px dashed grey;
-				display: inline-block;
-			}
-		</style>
 	</body>
 </html>
