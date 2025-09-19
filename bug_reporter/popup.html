@@ -5,17 +5,32 @@
 		<meta charset="UTF-8" />
 		<style>
 			body {
-				width: 200px;
+				width: 250px;
 				text-align: center;
+				padding: 10px;
+				font-family: sans-serif;
 			}
 			button {
-				width: 150px;
+				width: 100%;
 				padding: 10px;
+				margin-bottom: 10px;
+				font-size: 14px;
+			}
+			label {
+				font-size: 14px;
+				cursor: pointer;
+			}
+			div {
+				margin-bottom: 10px;
 			}
 		</style>
 	</head>
 	<body>
 		<h3>Bug Reporter</h3>
+		<div>
+			<input type="checkbox" id="resizeCheckbox" checked />
+			<label for="resizeCheckbox">이미지 폭 1400px로 줄이기</label>
+		</div>
 		<button id="captureBtn">현재 탭 캡처하기</button>
 		<script src="popup.js"></script>
 	</body>

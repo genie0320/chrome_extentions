@@ -1,50 +1,95 @@
 chrome.storage.local.get(["capturedImage"], (result) => {
 	if (result.capturedImage) {
-		// ------------------- 1. 캔버스 및 변수 초기 설정 -------------------
 		const canvas = new fabric.Canvas("canvas");
-		let currentMode = ""; // 현재 모드 (draw, rect, number 등)
-		let numberCounter = 1; // 숫자 스탬프 카운터
-
-		// 사각형 그리기를 위한 변수
+		let currentMode = "";
+		let numberCounter = 1;
+		let canvasHistory = [];
+		let isUndoRedo = false;
 		let isDrawingRect = false;
 		let rect, origX, origY;
 
-		// ------------------- 2. 이미지 배경으로 설정 -------------------
+		// --- UI 요소 가져오기 ---
+		const strokeWidthInput = document.getElementById("strokeWidth");
+		const rectBorderColorPicker = document.getElementById("rectBorderColor");
+		const rectFillColorPicker = document.getElementById("rectFillColor");
+
 		fabric.Image.fromURL(result.capturedImage, (img) => {
 			canvas.setWidth(img.width);
 			canvas.setHeight(img.height);
 			canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
+			saveState();
 		});
 
-		// ------------------- 3. 모드 변경 함수 -------------------
-		function setMode(mode) {
-			currentMode = mode;
-			// 자유 그리기 모드는 fabric.js 기본 기능 사용
-			canvas.isDrawingMode = mode === "draw";
-
-			// 다른 모드에서는 기본 객체 선택이 가능하도록 설정
-			canvas.selection = mode === "select";
-			canvas.forEachObject((obj) => (obj.selectable = mode === "select"));
-
-			console.log("Current mode:", currentMode);
+		function hexToRgba(hex, opacity) {
+			const r = parseInt(hex.slice(1, 3), 16),
+				g = parseInt(hex.slice(3, 5), 16),
+				b = parseInt(hex.slice(5, 7), 16);
+			return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 		}
 
-		// ------------------- 4. 사각형 그리기 로직 -------------------
+		function saveState() {
+			if (!isUndoRedo) canvasHistory.push(JSON.stringify(canvas));
+		}
+
+		function undo() {
+			if (canvasHistory.length > 1) {
+				isUndoRedo = true;
+				canvasHistory.pop();
+				canvas.loadFromJSON(
+					JSON.parse(canvasHistory[canvasHistory.length - 1]),
+					() => {
+						canvas.renderAll();
+						isUndoRedo = false;
+					}
+				);
+			}
+		}
+
+		window.addEventListener("keydown", (e) => {
+			if ((e.ctrlKey || e.metaKey) && e.key === "z") {
+				e.preventDefault();
+				undo();
+			}
+		});
+
+		canvas.on("object:added", saveState);
+		canvas.on("object:modified", saveState);
+
+		function setMode(mode) {
+			currentMode = mode;
+			// '자유롭게 그리기' 모드일 때 선 굵기 적용
+			if (mode === "draw") {
+				canvas.isDrawingMode = true;
+				canvas.freeDrawingBrush.width = parseInt(strokeWidthInput.value, 10);
+				canvas.freeDrawingBrush.color = rectBorderColorPicker.value; // 테두리 색상과 동일하게 설정
+			} else {
+				canvas.isDrawingMode = false;
+			}
+			canvas.selection = mode === "select";
+			canvas.forEachObject((obj) => (obj.selectable = mode === "select"));
+			canvas.discardActiveObject().renderAll();
+		}
+
+		// --- 사각형 그리기 로직 (선 굵기 적용) ---
 		canvas.on("mouse:down", (o) => {
 			if (currentMode !== "rect") return;
 			isDrawingRect = true;
 			const pointer = canvas.getPointer(o.e);
 			origX = pointer.x;
 			origY = pointer.y;
+			const borderColor = rectBorderColorPicker.value;
+			const fillColor = hexToRgba(rectFillColorPicker.value, 0.3);
+			const strokeWidth = parseInt(strokeWidthInput.value, 10); // 선 굵기 값 가져오기
+
 			rect = new fabric.Rect({
 				left: origX,
 				top: origY,
 				width: 0,
 				height: 0,
-				stroke: "red",
-				strokeWidth: 3,
-				fill: "transparent",
-				selectable: false, // 그리는 동안은 선택 안되게
+				stroke: borderColor,
+				strokeWidth: strokeWidth, // 선 굵기 적용
+				fill: fillColor,
+				selectable: false,
 			});
 			canvas.add(rect);
 		});
@@ -52,39 +97,38 @@ chrome.storage.local.get(["capturedImage"], (result) => {
 		canvas.on("mouse:move", (o) => {
 			if (!isDrawingRect) return;
 			const pointer = canvas.getPointer(o.e);
-			if (origX > pointer.x) {
-				rect.set({ left: Math.abs(pointer.x) });
-			}
-			if (origY > pointer.y) {
-				rect.set({ top: Math.abs(pointer.y) });
-			}
-			rect.set({ width: Math.abs(origX - pointer.x) });
-			rect.set({ height: Math.abs(origY - pointer.y) });
+			if (origX > pointer.x) rect.set({ left: Math.abs(pointer.x) });
+			if (origY > pointer.y) rect.set({ top: Math.abs(pointer.y) });
+			rect.set({
+				width: Math.abs(origX - pointer.x),
+				height: Math.abs(origY - pointer.y),
+			});
 			canvas.renderAll();
 		});
 
 		canvas.on("mouse:up", () => {
 			if (!isDrawingRect) return;
 			isDrawingRect = false;
-			rect.setCoords(); // 좌표 재계산
+			rect.set({ selectable: true });
+			rect.setCoords();
+			saveState();
 		});
 
-		// ------------------- 5. 숫자 스탬프 로직 -------------------
+		// --- 숫자 스탬프 로직 ---
 		canvas.on("mouse:down", (o) => {
 			if (currentMode !== "number") return;
 			const pointer = canvas.getPointer(o.e);
-			const numberText = new fabric.IText(String(numberCounter), {
-				left: pointer.x - 12, // 원 중앙에 오도록 위치 조정
-				top: pointer.y - 12,
-				fontSize: 24,
-				fill: "white",
-			});
 			const circle = new fabric.Circle({
-				left: pointer.x - 15, // 원이 텍스트를 감싸도록
-				top: pointer.y - 15,
 				radius: 15,
 				fill: "red",
-				stroke: "red",
+				originX: "center",
+				originY: "center",
+			});
+			const numberText = new fabric.IText(String(numberCounter), {
+				fontSize: 24,
+				fill: "white",
+				originX: "center",
+				originY: "center",
 			});
 			const group = new fabric.Group([circle, numberText], {
 				left: pointer.x,
@@ -94,7 +138,24 @@ chrome.storage.local.get(["capturedImage"], (result) => {
 			numberCounter++;
 		});
 
-		// ------------------- 6. 버튼에 이벤트 리스너 연결 -------------------
+		// --- 선 굵기 실시간 변경 이벤트 리스너 ---
+		strokeWidthInput.addEventListener("input", (e) => {
+			const newWidth = parseInt(e.target.value, 10);
+			canvas.freeDrawingBrush.width = newWidth; // 자유 그리기 굵기 변경
+			const activeObject = canvas.getActiveObject();
+			if (activeObject) {
+				// 선택된 객체 굵기 변경
+				activeObject.set("strokeWidth", newWidth);
+				canvas.renderAll();
+				saveState();
+			}
+		});
+
+		// --- 테두리 색상 변경 시 자유 그리기 붓 색상도 변경 ---
+		rectBorderColorPicker.addEventListener("input", (e) => {
+			canvas.freeDrawingBrush.color = e.target.value;
+		});
+
 		document
 			.getElementById("selectMode")
 			.addEventListener("click", () => setMode("select"));
@@ -108,9 +169,7 @@ chrome.storage.local.get(["capturedImage"], (result) => {
 			.getElementById("numberMode")
 			.addEventListener("click", () => setMode("number"));
 
-		// 초기 모드 설정
-		setMode("draw");
-
+		setMode("select");
 		chrome.storage.local.remove("capturedImage");
 	}
 });
