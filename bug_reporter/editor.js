@@ -1,42 +1,73 @@
-// ------------------- 1. IndexedDB 설정 및 함수 -------------------
+// editor.js (수정된 최종본)
+
+// --- 1. IndexedDB 설정 및 함수 ---
 const DB_NAME = "BugReportDB";
 const STORE_NAME = "reports";
 let db;
 
 function openDb() {
-	const request = indexedDB.open(DB_NAME, 1);
-	request.onerror = (event) =>
-		console.error("Database error:", event.target.errorCode);
-	request.onsuccess = (event) => (db = event.target.result);
-	request.onupgradeneeded = (event) => {
-		const db = event.target.result;
-		db.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
-	};
+	const e = indexedDB.open(DB_NAME, 2);
+	(e.onerror = (e) => console.error("Database error:", e.target.errorCode)),
+		(e.onsuccess = (e) => (db = e.target.result)),
+		(e.onupgradeneeded = (e) => {
+			const t = e.target.result;
+			t.objectStoreNames.contains(STORE_NAME) &&
+				t.deleteObjectStore(STORE_NAME),
+				t.createObjectStore(STORE_NAME, { keyPath: "uniqueId" });
+		});
 }
-openDb(); // 페이지 로드 시 DB 열기
-
-function saveReport(reportData) {
-	if (!db) {
-		alert("Database is not ready.");
-		return;
-	}
-	const transaction = db.transaction([STORE_NAME], "readwrite");
-	const store = transaction.objectStore(STORE_NAME);
-	const request = store.add(reportData);
-	request.onsuccess = () => {
+openDb();
+function saveReport(e) {
+	if (!db) return void alert("Database is not ready.");
+	const t = db
+		.transaction([STORE_NAME], "readwrite")
+		.objectStore(STORE_NAME)
+		.put(e);
+	(t.onsuccess = () => {
 		alert("리포트가 성공적으로 저장되었습니다!");
-		// 여기에 저장 후 폼 초기화 또는 페이지 닫기 로직 추가 가능
-	};
-	request.onerror = (event) => {
-		alert("저장 중 오류가 발생했습니다.");
-		console.error("Save error:", event.target.error);
-	};
+	}),
+		(t.onerror = (e) => {
+			alert("저장 중 오류가 발생했습니다."),
+				console.error("Save error:", e.target.error);
+		});
 }
 
-// ------------------- 2. 에디터 로직 (기존 코드와 결합) -------------------
-chrome.storage.local.get(["captureData"], (result) => {
+// --- 이미지 리사이즈 함수 ---
+function resizeImage(dataUrl, maxWidth) {
+	return new Promise((resolve) => {
+		const img = new Image();
+		(img.onload = () => {
+			if (img.width <= maxWidth) return void resolve(dataUrl);
+			const t = document.createElement("canvas"),
+				e = t.getContext("2d"),
+				o = maxWidth / img.width;
+			(t.width = maxWidth),
+				(t.height = img.height * o),
+				e.drawImage(img, 0, 0, t.width, t.height),
+				resolve(t.toDataURL("image/png"));
+		}),
+			(img.src = dataUrl);
+	});
+}
+
+// --- 2. 에디터 로직 ---
+chrome.storage.local.get(["captureData"], async (result) => {
 	if (result.captureData) {
-		const { capturedImage, pageUrl, captureTime } = result.captureData;
+		// ★★★ 1. 고유 ID를 기억할 변수 선언 ★★★
+		let reportUniqueId = null;
+
+		let { capturedImage, pageUrl, captureTime, resizeWidth, uniqueId } =
+			result.captureData;
+
+		// ★★★ 2. 변수에 고유 ID를 저장 (기억하기) ★★★
+		reportUniqueId = uniqueId;
+
+		if (resizeWidth !== "full") {
+			capturedImage = await resizeImage(
+				capturedImage,
+				parseInt(resizeWidth, 10)
+			);
+		}
 
 		// --- 폼 필드 자동 채우기 ---
 		document.getElementById("pageUrl").value = pageUrl;
@@ -45,13 +76,39 @@ chrome.storage.local.get(["captureData"], (result) => {
 		).toLocaleString();
 
 		const canvas = new fabric.Canvas("canvas");
+
+		// --- 3. 저장 버튼 리스너 ---
+		document.getElementById("saveBtn").addEventListener("click", () => {
+			// 이제 storage에서 다시 읽어올 필요 없이, 기억해 둔 변수를 바로 사용
+			if (!reportUniqueId) {
+				alert("고유 ID를 찾을 수 없어 저장할 수 없습니다.");
+				return;
+			}
+
+			const reportData = {
+				uniqueId: reportUniqueId, // 기억해 둔 ID 사용
+				createdAt: new Date(),
+				url: document.getElementById("pageUrl").value,
+				title: document.getElementById("reportTitle").value,
+				category: document.getElementById("reportCategory").value,
+				problem: document.getElementById("problemDesc").value,
+				expected: document.getElementById("expectedResult").value,
+				imageData: canvas.toDataURL({ format: "png" }),
+			};
+
+			chrome.storage.sync.get(["userName", "userEmail"], (profile) => {
+				reportData.reporterName = profile.userName || "N/A";
+				reportData.reporterEmail = profile.userEmail || "N/A";
+				saveReport(reportData);
+			});
+		});
+
 		let currentMode = "";
 		let numberCounter = 1;
 		let canvasHistory = [];
 		let isUndoRedo = false;
 		let isDrawingRect = false;
 		let rect, origX, origY;
-
 		const strokeWidthInput = document.getElementById("strokeWidth");
 		const rectBorderColorPicker = document.getElementById("rectBorderColor");
 		const rectFillColorPicker = document.getElementById("rectFillColor");
@@ -63,29 +120,37 @@ chrome.storage.local.get(["captureData"], (result) => {
 			saveState();
 		});
 
-		function hexToRgba(hex, opacity) {
-			const r = parseInt(hex.slice(1, 3), 16),
-				g = parseInt(hex.slice(3, 5), 16),
-				b = parseInt(hex.slice(5, 7), 16);
-			return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+		function hexToRgba(e, t) {
+			const o = parseInt(e.slice(1, 3), 16),
+				n = parseInt(e.slice(3, 5), 16),
+				c = parseInt(e.slice(5, 7), 16);
+			return `rgba(${o}, ${n}, ${c}, ${t})`;
 		}
-
 		function saveState() {
-			if (!isUndoRedo) canvasHistory.push(JSON.stringify(canvas));
+			isUndoRedo || canvasHistory.push(JSON.stringify(canvas));
 		}
-
 		function undo() {
 			if (canvasHistory.length > 1) {
-				isUndoRedo = true;
-				canvasHistory.pop();
-				canvas.loadFromJSON(
-					JSON.parse(canvasHistory[canvasHistory.length - 1]),
-					() => {
-						canvas.renderAll();
-						isUndoRedo = false;
-					}
-				);
+				(isUndoRedo = !0), canvasHistory.pop();
+				const e = JSON.parse(canvasHistory[canvasHistory.length - 1]);
+				canvas.loadFromJSON(e, () => {
+					canvas.renderAll(), (isUndoRedo = !1);
+				});
 			}
+		}
+		function setMode(e) {
+			(currentMode = e),
+				"draw" === e
+					? ((canvas.isDrawingMode = !0),
+					  (canvas.freeDrawingBrush.width = parseInt(
+							strokeWidthInput.value,
+							10
+					  )),
+					  (canvas.freeDrawingBrush.color = rectBorderColorPicker.value))
+					: (canvas.isDrawingMode = !1),
+				(canvas.selection = "select" === e),
+				canvas.forEachObject((t) => (t.selectable = "select" === e)),
+				canvas.discardActiveObject().renderAll();
 		}
 
 		window.addEventListener("keydown", (e) => {
@@ -94,24 +159,8 @@ chrome.storage.local.get(["captureData"], (result) => {
 				undo();
 			}
 		});
-
 		canvas.on("object:added", saveState);
 		canvas.on("object:modified", saveState);
-
-		function setMode(mode) {
-			currentMode = mode;
-			if (mode === "draw") {
-				canvas.isDrawingMode = true;
-				canvas.freeDrawingBrush.width = parseInt(strokeWidthInput.value, 10);
-				canvas.freeDrawingBrush.color = rectBorderColorPicker.value;
-			} else {
-				canvas.isDrawingMode = false;
-			}
-			canvas.selection = mode === "select";
-			canvas.forEachObject((obj) => (obj.selectable = mode === "select"));
-			canvas.discardActiveObject().renderAll();
-		}
-
 		canvas.on("mouse:down", (o) => {
 			if (currentMode !== "rect") return;
 			isDrawingRect = true;
@@ -131,7 +180,6 @@ chrome.storage.local.get(["captureData"], (result) => {
 			});
 			canvas.add(rect);
 		});
-
 		canvas.on("mouse:move", (o) => {
 			if (!isDrawingRect) return;
 			const pointer = canvas.getPointer(o.e);
@@ -143,7 +191,6 @@ chrome.storage.local.get(["captureData"], (result) => {
 			});
 			canvas.renderAll();
 		});
-
 		canvas.on("mouse:up", () => {
 			if (!isDrawingRect) return;
 			isDrawingRect = false;
@@ -151,7 +198,6 @@ chrome.storage.local.get(["captureData"], (result) => {
 			rect.setCoords();
 			saveState();
 		});
-
 		canvas.on("mouse:down", (o) => {
 			if (currentMode !== "number") return;
 			const pointer = canvas.getPointer(o.e);
@@ -174,7 +220,6 @@ chrome.storage.local.get(["captureData"], (result) => {
 			canvas.add(group);
 			numberCounter++;
 		});
-
 		strokeWidthInput.addEventListener("input", (e) => {
 			const newWidth = parseInt(e.target.value, 10);
 			canvas.freeDrawingBrush.width = newWidth;
@@ -185,11 +230,9 @@ chrome.storage.local.get(["captureData"], (result) => {
 				saveState();
 			}
 		});
-
 		rectBorderColorPicker.addEventListener("input", (e) => {
 			canvas.freeDrawingBrush.color = e.target.value;
 		});
-
 		document
 			.getElementById("selectMode")
 			.addEventListener("click", () => setMode("select"));
@@ -202,31 +245,13 @@ chrome.storage.local.get(["captureData"], (result) => {
 		document
 			.getElementById("numberMode")
 			.addEventListener("click", () => setMode("number"));
-
-		// --- 저장 버튼 이벤트 리스너 ---
-
-		document.getElementById("saveBtn").addEventListener("click", () => {
-			// 1. 설정에 저장된 프로필 정보를 먼저 가져온다.
-			chrome.storage.sync.get(["userName", "userEmail"], (profile) => {
-				// 2. 폼 데이터와 프로필 정보를 합쳐서 reportData 객체를 만든다.
-				const reportData = {
-					createdAt: new Date(),
-					url: document.getElementById("pageUrl").value,
-					title: document.getElementById("reportTitle").value,
-					category: document.getElementById("reportCategory").value,
-					problem: document.getElementById("problemDesc").value,
-					expected: document.getElementById("expectedResult").value,
-					imageData: canvas.toDataURL({ format: "png" }),
-					// --- 프로필 정보 추가 ---
-					reporterName: profile.userName || "N/A",
-					reporterEmail: profile.userEmail || "N/A",
-				};
-				// 3. 완성된 데이터를 IndexedDB에 저장한다.
-				saveReport(reportData);
-			});
+		document.getElementById("listBtn").addEventListener("click", () => {
+			chrome.tabs.create({ url: "list.html" });
 		});
 
-		setMode("rect");
+		setMode("rect"); // 기본 툴 설정
+
+		// 모든 정보를 변수에 저장하고, 임시 데이터는 삭제
 		chrome.storage.local.remove("captureData");
 	}
 });

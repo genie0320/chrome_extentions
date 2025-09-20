@@ -1,66 +1,51 @@
-// 확장 프로그램 아이콘이 클릭되었을 때 이 코드가 실행됨
-chrome.action.onClicked.addListener((tab) => {
-	// 설정에서 리사이즈 옵션을 가져옴 (나중에 옵션 페이지 만들 때 연동)
-	// 지금은 일단 true(리사이즈 함)로 고정
-	const shouldResize = true;
+// 확장 프로그램 아이콘 클릭 시 실행
+chrome.action.onClicked.addListener(async (tab) => {
+	// 1. 설정에서 사용자 정보와 카운터, 리사이즈 설정을 가져옴
+	const settings = await chrome.storage.sync.get([
+		"userName",
+		"issueCounter",
+		"captureWidth",
+	]);
+	const userName = settings.userName || "USER";
+	const currentCounter = settings.issueCounter || 0;
+	const newCounter = currentCounter + 1;
+	const captureWidthSetting = settings.captureWidth || "1200";
 
-	chrome.tabs.captureVisibleTab(null, { format: "png" }, (dataUrl) => {
-		// dataUrl이 없을 경우(예: 빈 페이지) 오류 방지
-		if (!dataUrl) {
-			console.error("Failed to capture tab.");
-			return;
-		}
+	// 2. 새로운 고유 ID 생성
+	const initials = getInitials(userName);
+	const uniqueId = `${initials}-${newCounter}`;
 
-		const processAndSave = (imageDataUrl) => {
-			const captureData = {
-				capturedImage: imageDataUrl,
-				pageUrl: tab.url,
-				captureTime: new Date().toISOString(),
-			};
+	// 3. 증가된 카운터를 바로 저장
+	await chrome.storage.sync.set({ issueCounter: newCounter });
 
-			chrome.storage.local.set({ captureData }, () => {
-				chrome.tabs.create({ url: "editor.html" });
-			});
-		};
+	// 4. 원본 크기로 캡처 실행
+	const dataUrl = await chrome.tabs.captureVisibleTab(null, { format: "png" });
+	if (!dataUrl) {
+		console.error("Failed to capture tab.");
+		return;
+	}
 
-		if (shouldResize) {
-			// 이미지 리사이즈 로직. OffscreenCanvas를 사용해 백그라운드에서 처리
-			createImageBitmap(dataUrlToBlob(dataUrl)).then((imageBitmap) => {
-				const maxWidth = 1400;
-				if (imageBitmap.width <= maxWidth) {
-					processAndSave(dataUrl);
-					return;
-				}
+	// 5. 캡처 데이터와 함께 '리사이즈 지시사항'을 에디터로 전달
+	const captureData = {
+		uniqueId: uniqueId,
+		capturedImage: dataUrl, // 원본 이미지 전달
+		pageUrl: tab.url,
+		captureTime: new Date().toISOString(),
+		resizeWidth: captureWidthSetting, // 'full' 또는 '800', '1200'
+	};
 
-				const ratio = maxWidth / imageBitmap.width;
-				const canvas = new OffscreenCanvas(
-					maxWidth,
-					imageBitmap.height * ratio
-				);
-				const ctx = canvas.getContext("2d");
-				ctx.drawImage(imageBitmap, 0, 0, canvas.width, canvas.height);
-
-				canvas.convertToBlob({ type: "image/png" }).then((blob) => {
-					const reader = new FileReader();
-					reader.onload = () => processAndSave(reader.result);
-					reader.readAsDataURL(blob);
-				});
-			});
-		} else {
-			processAndSave(dataUrl);
-		}
-	});
+	await chrome.storage.local.set({ captureData });
+	await chrome.tabs.create({ url: "editor.html" });
 });
 
-// Data URL을 Blob 객체로 변환하는 헬퍼 함수
-function dataUrlToBlob(dataUrl) {
-	const parts = dataUrl.split(",");
-	const mimeType = parts[0].match(/:(.*?);/)[1];
-	const b64 = atob(parts[1]);
-	let n = b64.length;
-	const u8arr = new Uint8Array(n);
-	while (n--) {
-		u8arr[n] = b64.charCodeAt(n);
+// 이름으로부터 이니셜을 생성하는 헬퍼 함수
+function getInitials(name) {
+	// option page에 이니셜을 입력받는 사용자입력란 추가. (이니셜은 5자 이내의 알파벳)
+	let result = "";
+	for (let i = 0; i < name.length; i++) {
+		const code = name.charCodeAt(i) - 44032;
+		if (code > -1 && code < 11172) result += cho[Math.floor(code / 588)];
+		else if (/[A-Z]/.test(name[i])) result += name[i];
 	}
-	return new Blob([u8arr], { type: mimeType });
+	return result.toUpperCase() || "USER";
 }

@@ -28,9 +28,6 @@ document.getElementById("captureBtn").addEventListener("click", () => {
 	});
 });
 
-// 아래 resizeImage 함수와 saveAndOpenEditor 함수는 삭제해도 되지만,
-// 명확성을 위해 전체 코드를 제공할게. 기존 코드를 이걸로 완전히 대체하면 돼.
-
 function resizeImage(dataUrl, maxWidth, callback) {
 	const img = new Image();
 	img.onload = () => {

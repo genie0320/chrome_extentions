@@ -1,5 +1,5 @@
-<html lang="KO"></html>
-<html>
+<!DOCTYPE html>
+<html lang="KO">
 	<head>
 		<title>Bug Report Editor</title>
 		<meta charset="UTF-8" />
@@ -118,6 +118,7 @@
 			</div>
 			<div class="form-panel">
 				<h3>리포트 상세 내용</h3>
+				<p class="issue_id">이슈고유번호 : {$issue_id}</p>
 				<div class="form-group">
 					<label for="pageUrl">페이지 URL</label>
 					<input type="text" id="pageUrl" disabled />
@@ -133,13 +134,66 @@
 						id="reportTitle"
 						placeholder="예: 로그인 버튼 오류" />
 				</div>
+				<!-- 가져온 URL에 따라 자동분류 
+				- 'http://43.202.30.40:3001/'인 경우 : 준랩
+				- 'http://43.202.30.40:3002/'로 시작하는 경우 : 준차트
+				- 'http://43.202.30.40:3003/'로 시작하는 경우 : TIOM				
+				-->
+				<div class="form-group">
+					<label for="channel">채널</label>
+					<select id="channel">
+						<option value="joonLab">준랩</option>
+						<option value="joonChart">준차트</option>
+						<option value="tiom">TIOM</option>
+					</select>
+				</div>
+				<!-- 가져온 URL에 따라 자동분류 
+				- 'dashboard'가 포함된 경우 : 대시보드		
+				- 'member'가 포함된 경우 : 회원관리		
+				- 'question'가 포함된 경우 : 문항관리		
+				- 'medicinal'가 포함된 경우 : 약재관리		
+				- 'prescription'가 포함된 경우 : 처방전관리		
+				- 'constitution'가 포함된 경우 : 체질관리		
+				- 'protocol'가 포함된 경우 : 프로토콜관리		
+				- 'individual'가 포함된 경우 : 개별증례		
+				- 'stats'가 포함된 경우 : 통계/로그		
+				- 'settings'가 포함된 경우 : 설정		
+
+				- 'today'가 포함된 경우 : 투데이		
+				- 'treatment'가 포함된 경우 : 진료하기		
+				- 'medicine'가 포함된 경우 : 첩약관리		
+				- 'patients'가 포함된 경우 : 환자관리		
+				- 'settings'가 포함된 경우 : 설정		
+
+				- 기타 : none
+
+				-->
+				<div class="form-group">
+					<label for="menu">메뉴</label>
+					<select id="menu">
+						<option value="dashboard">대시보드</option>
+						<option value="member">회원관리</option>
+						<option value="question">문항관리</option>
+						<option value="medicinal">약재관리</option>
+						<option value="prescription">처방전관리</option>
+						<option value="constitution">체질관리</option>
+						<option value="protocol">프로토콜관리</option>
+						<option value="individual">개별증례</option>
+						<option value="stats">통계/로그</option>
+						<option value="today">투데이</option>
+						<option value="treatment">진료하기</option>
+						<option value="medicine">첩약관리</option>
+						<option value="patients">환자관리</option>
+						<option value="settings">설정</option>
+						<option value="etc">기타</option>
+					</select>
+				</div>
 				<div class="form-group">
 					<label for="reportCategory">분류</label>
 					<select id="reportCategory">
-						<option value="function">기능 오류</option>
-						<option value="usability">사용성 개선</option>
-						<option value="ui">UI 깨짐</option>
-						<option value="typo">오탈자</option>
+						<option value="function">버그</option>
+						<option value="usability">개선</option>
+						<option value="ui">UI</option>
 					</select>
 				</div>
 				<div class="form-group">

@@ -1,13 +1,32 @@
 <!DOCTYPE html>
 <html lang="KO">
 	<head>
-		<meta charset="UTF-8" />
 		<title>Bug Reporter 설정</title>
+		<meta charset="UTF-8" />
+
 		<style>
 			body {
 				font-family: sans-serif;
-				width: 400px;
+				width: 450px;
 				padding: 1em;
+				background-color: #f9f9f9;
+			}
+			h1 {
+				border-bottom: 1px solid #ddd;
+				padding-bottom: 0.5em;
+			}
+			fieldset {
+				border: 1px solid #ccc;
+				border-radius: 8px;
+				padding: 1.2em;
+				margin-bottom: 1.5em;
+				background-color: white;
+			}
+			legend {
+				font-weight: bold;
+				font-size: 1.1em;
+				padding: 0 0.5em;
+				color: #333;
 			}
 			.form-group {
 				margin-bottom: 1em;
@@ -15,33 +34,92 @@
 			label {
 				display: block;
 				margin-bottom: 0.5em;
+				color: #555;
 			}
-			input {
+			input[type="text"],
+			input[type="email"] {
 				width: 100%;
-				padding: 0.5em;
+				padding: 0.7em;
 				box-sizing: border-box;
+				border: 1px solid #ccc;
+				border-radius: 4px;
+			}
+			.radio-group label {
+				display: inline-block;
+				margin-right: 1.5em;
+				font-weight: normal;
+				cursor: pointer;
 			}
 			button {
-				padding: 0.7em 1.5em;
+				padding: 0.8em 1.8em;
+				border: none;
+				background-color: #007bff;
+				color: white;
+				border-radius: 4px;
+				cursor: pointer;
+				font-size: 1em;
+			}
+			button:hover {
+				background-color: #0056b3;
 			}
 			#status {
 				margin-top: 1em;
 				color: green;
+				font-weight: bold;
+				height: 1.2em;
 			}
 		</style>
 	</head>
 	<body>
 		<h1>설정</h1>
-		<div class="form-group">
-			<label for="userName">등록자 이름</label>
-			<input type="text" id="userName" />
-		</div>
-		<div class="form-group">
-			<label for="userEmail">이메일</label>
-			<input type="email" id="userEmail" />
-		</div>
+
+		<fieldset>
+			<legend>프로필 세팅</legend>
+			<div class="form-group">
+				<label for="userName">등록자 이름</label>
+				<input type="text" id="userName" placeholder="홍길동" />
+			</div>
+			<div class="form-group">
+				<label for="userEmail">이메일</label>
+				<input type="email" id="userEmail" placeholder="test@example.com" />
+			</div>
+		</fieldset>
+
+		<fieldset>
+			<legend>캡처 해상도 설정</legend>
+			<div class="form-group radio-group">
+				<label
+					><input type="radio" name="resolution" value="800" /> 가로
+					800px</label
+				>
+				<label
+					><input type="radio" name="resolution" value="1200" /> 가로
+					1200px</label
+				>
+				<label
+					><input type="radio" name="resolution" value="full" /> 원본 크기
+					(Full)</label
+				>
+			</div>
+		</fieldset>
+
+		<fieldset>
+			<legend>데이터 관리</legend>
+			<div class="form-group">
+				<label for="resetDbBtn">전체 리포트 초기화</label>
+				<p style="font-size: 0.8em; color: #555; margin-top: -0.5em">
+					지금까지 저장된 모든 버그 리포트 데이터를 영구적으로 삭제합니다. 이
+					작업은 되돌릴 수 없습니다.
+				</p>
+				<button id="resetDbBtn" style="background-color: #dc3545">
+					데이터 전체 삭제
+				</button>
+			</div>
+		</fieldset>
+
 		<button id="saveBtn">저장</button>
 		<div id="status"></div>
+
 		<script src="options.js"></script>
 	</body>
 </html>
