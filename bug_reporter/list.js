@@ -1,4 +1,3 @@
-// list.js (최종 수정본)
 import * as exporter from "./exporter.js";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -106,6 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 	}
 
+	// 'TODO_NOW' g현재 '보기/수정' 버튼, '삭제'버튼 작동안함.
 	function createReportRow(report, displayIndex) {
 		const row = document.createElement("tr");
 		// ★★★ data-id에 report.id 대신 report.uniqueId를 저장 ★★★
