@@ -1,0 +1,80 @@
+body {
+	font-family: sans-serif;
+	margin: 0;
+	padding: 1.5em;
+	background-color: #f4f4f4;
+}
+.container {
+	display: flex;
+	gap: 2em;
+}
+.editor-panel {
+	flex: 2;
+}
+.form-panel {
+	flex: 1;
+	background: white;
+	padding: 1.5em;
+	border-radius: 8px;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+#toolbar {
+	margin-bottom: 1em;
+}
+#toolbar button,
+#toolbar label {
+	margin-right: 0.5em;
+}
+#editor-container {
+	border: 2px dashed #ccc;
+	display: inline-block;
+}
+h1,
+h3 {
+	margin-top: 0;
+}
+.form-group {
+	margin-bottom: 1em;
+}
+.form-group label {
+	display: block;
+	margin-bottom: 0.5em;
+	font-weight: bold;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+	width: 100%;
+	padding: 0.5em;
+	box-sizing: border-box;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+.form-group textarea {
+	min-height: 100px;
+	resize: vertical;
+}
+.form-group input[disabled] {
+	background-color: #eee;
+}
+.action-buttons {
+	margin-top: 1.5em;
+	display: flex;
+	gap: 1em;
+}
+.action-buttons button {
+	width: 100%;
+	padding: 0.8em;
+	border: none;
+	border-radius: 4px;
+	font-size: 1em;
+	cursor: pointer;
+}
+#saveBtn {
+	background-color: #007bff;
+	color: white;
+}
+#listBtn {
+	background-color: #6c757d;
+	color: white;
+}
