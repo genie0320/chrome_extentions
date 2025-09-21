@@ -54,12 +54,13 @@
 			<thead>
 				<tr>
 					<th class="col-no" width="3%">번호</th>
-					<th class="col-no" width="5%">UUID</th>
+					<!-- <th class="col-no" width="5%">UUID</th> -->
 					<th class="col-date" width="7%">캡처일시</th>
 					<th class="col-category" width="5%">분류</th>
 					<th class="col-title" width="10%">타이틀</th>
 					<th class="col-asis">문제점 기술</th>
 					<th class="col-tobe">원하는 결과</th>
+					<th class="col-url" width="10%">url</th>
 					<th class="col-manage" width="8%">관리</th>
 					<th class="col-status" width="5%">상태</th>
 				</tr>
@@ -79,12 +80,47 @@
 					<div class="modal-form-panel">
 						<input type="hidden" id="modalReportId" />
 						<div class="form-group">
+							<label for="pageUrl">페이지 URL</label>
+							<input type="text" id="pageUrl" disabled />
+						</div>
+						<div class="form-group">
+							<label for="captureTime">캡처 시간</label>
+							<input type="text" id="captureTime" disabled />
+						</div>
+						<div class="form-group">
+							<label for="channel">채널</label>
+							<select id="channel">
+								<option value="joonLab">준랩</option>
+								<option value="joonChart">준차트</option>
+								<option value="tiom">TIOM</option>
+							</select>
+						</div>
+						<div class="form-group">
+							<label for="menu">메뉴</label>
+							<select id="menu">
+								<option value="dashboard">대시보드</option>
+								<option value="member">회원관리</option>
+								<option value="question">문항관리</option>
+								<option value="medicinal">약재관리</option>
+								<option value="prescription">처방전관리</option>
+								<option value="constitution">체질관리</option>
+								<option value="protocol">프로토콜관리</option>
+								<option value="individual">개별증례</option>
+								<option value="stats">통계/로그</option>
+								<option value="today">투데이</option>
+								<option value="treatment">진료하기</option>
+								<option value="medicine">첩약관리</option>
+								<option value="patients">환자관리</option>
+								<option value="settings">설정</option>
+								<option value="etc">기타</option>
+							</select>
+						</div>
+						<div class="form-group">
 							<label for="modalCategory">분류</label
 							><select id="modalCategory">
-								<option value="function">기능 오류</option>
-								<option value="usability">사용성 개선</option>
-								<option value="ui">UI 깨짐</option>
-								<option value="typo">오탈자</option>
+								<option value="BUG">버그</option>
+								<option value="개선">개선</option>
+								<option value="단순">UI</option>
 							</select>
 						</div>
 						<div class="form-group">

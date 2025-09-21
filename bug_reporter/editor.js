@@ -245,8 +245,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 			uniqueId,
 			createdAt: new Date(),
 			url: pageUrl,
-			title: document.getElementById("reportTitle").value,
+			channel: document.getElementById("channel").value,
+			menu: document.getElementById("menu").value,
 			category: document.getElementById("reportCategory").value,
+			title: document.getElementById("reportTitle").value,
 			problem: document.getElementById("problemDesc").value,
 			expected: document.getElementById("expectedResult").value,
 			imageData: canvas.toDataURL({ format: "png" }), // 마크업이 포함된 이미지 저장

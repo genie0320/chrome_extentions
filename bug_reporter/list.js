@@ -53,10 +53,12 @@ document.addEventListener("DOMContentLoaded", () => {
 		row.dataset.id = report.uniqueId;
 		row.innerHTML = `
         <td class="col-no">${displayIndex}</td>
-        <td class="col-no unique-id-cell" title="${report.uniqueId || ""}">${(
+<!--        <td class="col-no unique-id-cell" title="${
 			report.uniqueId || ""
-		).substring(0, 8)}...</td>
-        <td class="col-date">${new Date(report.createdAt).toLocaleString()}</td>
+		}">${(report.uniqueId || "").substring(0, 8)}...</td> -->
+        <td class="col-date">${new Date(report.createdAt)
+					.toLocaleString()
+					.substring(0, 12)}</td>
         <td class="col-category">${report.category || ""}</td>
         <td class="col-title">${report.title || "(제목 없음)"}</td>
         <td class="col-problem" title="${report.problem}">${
@@ -65,6 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <td class="col-problem" title="${report.expected}">${
 			report.expected || ""
 		}</td>
+        <td class="col-problem" title="${report.url}">${report.url || ""}</td>
         <td class="col-manage">
             <button class="view-btn">보기/수정</button>
             <button class="delete-btn">삭제</button>
@@ -107,7 +110,9 @@ document.addEventListener("DOMContentLoaded", () => {
 			filtered = filtered.filter(
 				(r) =>
 					(r.title || "").toLowerCase().includes(searchTerm) ||
-					(r.problem || "").toLowerCase().includes(searchTerm)
+					(r.problem || "").toLowerCase().includes(searchTerm) ||
+					(r.url || "").toLowerCase().includes(searchTerm) ||
+					(r.expected || "").toLowerCase().includes(searchTerm)
 			);
 		}
 		// **수정된 부분: 정렬 로직 추가**
@@ -156,8 +161,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	function openModal(id) {
 		const report = allReports.find((r) => r.uniqueId === id);
+		console.log(report);
 		if (!report) return;
 		modal.querySelector("#modalReportId").value = report.uniqueId;
+		modal.querySelector("#pageUrl").value = report.url;
+		modal.querySelector("#captureTime").value = Date(
+			report.createdAt
+		).toLocaleString();
+		modal.querySelector("#channel").value = report.channel;
+		modal.querySelector("#menu").value = report.menu;
 		modal.querySelector("#modalImage").src = report.imageData;
 		modal.querySelector("#modalCategory").value = report.category;
 		modal.querySelector("#modalTitle").value = report.title;
@@ -175,6 +187,8 @@ document.addEventListener("DOMContentLoaded", () => {
 		const report = allReports.find((r) => r.uniqueId === id);
 		if (!report) return;
 
+		report.channel = modal.querySelector("#channel").value;
+		report.menu = modal.querySelector("#menu").value;
 		report.category = modal.querySelector("#modalCategory").value;
 		report.title = modal.querySelector("#modalTitle").value;
 		report.problem = modal.querySelector("#modalProblem").value;
