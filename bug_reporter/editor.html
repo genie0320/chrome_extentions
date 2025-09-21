@@ -4,7 +4,6 @@
 		<title>Bug Report Editor</title>
 		<meta charset="UTF-8" />
 		<link rel="stylesheet" href="css/editor.css" />
-		<style></style>
 	</head>
 	<body>
 		<div class="container">
@@ -38,7 +37,8 @@
 			</div>
 			<div class="form-panel">
 				<h3>리포트 상세 내용</h3>
-				<p class="issue_id">이슈고유번호 : {$issue_id}</p>
+				<p class="issue_id">고유 ID 생성 중...</p>
+				<p class="issue_id"></p>
 				<div class="form-group">
 					<label for="pageUrl">페이지 URL</label>
 					<input type="text" id="pageUrl" disabled />
@@ -48,18 +48,6 @@
 					<input type="text" id="captureTime" disabled />
 				</div>
 				<div class="form-group">
-					<label for="reportTitle">제목</label>
-					<input
-						type="text"
-						id="reportTitle"
-						placeholder="예: 로그인 버튼 오류" />
-				</div>
-				<!-- 'TODO_NOW' 가져온 URL에 따라 자동분류 
-				- 'http://43.202.30.40:3001/'인 경우 : 준랩
-				- 'http://43.202.30.40:3002/'로 시작하는 경우 : 준차트
-				- 'http://43.202.30.40:3003/'로 시작하는 경우 : TIOM				
-				-->
-				<div class="form-group">
 					<label for="channel">채널</label>
 					<select id="channel">
 						<option value="joonLab">준랩</option>
@@ -67,27 +55,6 @@
 						<option value="tiom">TIOM</option>
 					</select>
 				</div>
-				<!-- 'TODO_NOW' 가져온 URL에 따라 자동분류 
-				- 'dashboard'가 포함된 경우 : 대시보드		
-				- 'member'가 포함된 경우 : 회원관리		
-				- 'question'가 포함된 경우 : 문항관리		
-				- 'medicinal'가 포함된 경우 : 약재관리		
-				- 'prescription'가 포함된 경우 : 처방전관리		
-				- 'constitution'가 포함된 경우 : 체질관리		
-				- 'protocol'가 포함된 경우 : 프로토콜관리		
-				- 'individual'가 포함된 경우 : 개별증례		
-				- 'stats'가 포함된 경우 : 통계/로그		
-				- 'settings'가 포함된 경우 : 설정		
-
-				- 'today'가 포함된 경우 : 투데이		
-				- 'treatment'가 포함된 경우 : 진료하기		
-				- 'medicine'가 포함된 경우 : 첩약관리		
-				- 'patients'가 포함된 경우 : 환자관리		
-				- 'settings'가 포함된 경우 : 설정		
-
-				- 기타 : none
-
-				-->
 				<div class="form-group">
 					<label for="menu">메뉴</label>
 					<select id="menu">
@@ -111,10 +78,17 @@
 				<div class="form-group">
 					<label for="reportCategory">분류</label>
 					<select id="reportCategory">
-						<option value="function">버그</option>
-						<option value="usability">개선</option>
-						<option value="ui">UI</option>
+						<option value="BUG">버그</option>
+						<option value="개선">개선</option>
+						<option value="단순">UI</option>
 					</select>
+				</div>
+				<div class="form-group">
+					<label for="reportTitle">제목</label>
+					<input
+						type="text"
+						id="reportTitle"
+						placeholder="예: 로그인 버튼 오류" />
 				</div>
 				<div class="form-group">
 					<label for="problemDesc">문제점 기술</label>
@@ -134,8 +108,7 @@
 				</div>
 			</div>
 		</div>
-
-		<script src="fabric.min.js"></script>
-		<script src="editor.js"></script>
+		<script src="libs/fabric.min.js"></script>
+		<script src="editor.js" type="module"></script>
 	</body>
 </html>

@@ -17,6 +17,7 @@ body {
 	display: inline-block;
 }
 .dropdown-toggle {
+	min-width: 120px;
 	background-color: #28a745;
 	color: white;
 	padding: 8px 12px;
@@ -76,12 +77,14 @@ h1 {
 	background-color: #007bff;
 	color: white;
 }
+
 table {
 	width: 100%;
 	border-collapse: collapse;
 	background: white;
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 	table-layout: fixed;
+	overflow-x: auto; /* 테이블이 넘칠 경우 스크롤바 추가 */
 }
 th,
 td {
@@ -95,7 +98,7 @@ th {
 	background-color: #007bff;
 	color: white;
 }
-.col-no {
+/* .col-no {
 	width: 4%;
 }
 .col-date {
@@ -115,7 +118,7 @@ th {
 }
 .col-status {
 	width: 10%;
-}
+} */
 .status-select {
 	width: 100%;
 	padding: 4px;

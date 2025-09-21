@@ -61,6 +61,18 @@ export async function deleteReport(id) {
 	});
 }
 
+export async function updateReport(report) {
+	const db = await getDb();
+	return new Promise((resolve, reject) => {
+		const transaction = db.transaction([STORE_NAME], "readwrite");
+		const store = transaction.objectStore(STORE_NAME);
+		const request = store.put(report);
+		request.onerror = (e) => reject("Error updating report: " + e.target.error);
+		request.onsuccess = () => resolve();
+	});
+}
+
+// ...
 // DB를 완전히 삭제하는 함수
 export function deleteDatabase() {
 	return new Promise((resolve, reject) => {

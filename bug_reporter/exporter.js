@@ -11,7 +11,7 @@ export async function exportToExcelZip(reports, JSZip, XLSX) {
 
 		for (const report of reports) {
 			excelData.push({
-				번호: report.id,
+				번호: report.uniqueId,
 				상태: report.status || "접수완료",
 				분류: report.category,
 				타이틀: report.title,
@@ -19,7 +19,7 @@ export async function exportToExcelZip(reports, JSZip, XLSX) {
 				"리포트 일시": new Date(report.createdAt).toLocaleString(),
 				"문제점 기술": report.problem,
 				"원하는 결과": report.expected,
-				"이미지 경로": `images/report_${report.id}.png`,
+				"이미지 경로": `images/report_${report.uniqueId}.png`,
 				"담당자 이름": report.reporterName,
 				"담당자 이메일": report.reporterEmail,
 			});
@@ -34,7 +34,7 @@ export async function exportToExcelZip(reports, JSZip, XLSX) {
 		const imgFolder = zip.folder("images");
 
 		for (const report of reports) {
-			const imageFileName = `report_${report.id}.png`;
+			const imageFileName = `report_${report.uniqueId}.png`;
 			const base64Data = report.imageData.split(",")[1];
 			if (base64Data) {
 				imgFolder.file(imageFileName, base64Data, { base64: true });

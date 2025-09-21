@@ -4,8 +4,6 @@
 		<title>저장된 리포트 목록</title>
 		<meta charset="UTF-8" />
 		<link rel="stylesheet" href="css/list.css" />
-		<script src="./xlsx.full.min.js"></script>
-		<script src="./jszip.min.js"></script>
 
 		<style></style>
 	</head>
@@ -48,16 +46,22 @@
 			마지막 내보내기: <span id="lastExportTime">없음</span>
 		</div>
 		<div class="filter-container" id="statusFilters"></div>
+		<p class="sort-options">
+			<button id="sortAscBtn" class="active">캡처일시 오름차순</button>
+			<button id="sortDescBtn">캡처일시 내림차순</button>
+		</p>
 		<table>
 			<thead>
 				<tr>
-					<th class="col-no">번호</th>
-					<th class="col-date">캡처일자</th>
-					<th class="col-category">분류</th>
-					<th class="col-title">타이틀</th>
-					<th class="col-problem">문제점 기술</th>
-					<th class="col-manage">관리</th>
-					<th class="col-status">상태</th>
+					<th class="col-no" width="3%">번호</th>
+					<th class="col-no" width="5%">UUID</th>
+					<th class="col-date" width="7%">캡처일시</th>
+					<th class="col-category" width="5%">분류</th>
+					<th class="col-title" width="10%">타이틀</th>
+					<th class="col-asis">문제점 기술</th>
+					<th class="col-tobe">원하는 결과</th>
+					<th class="col-manage" width="8%">관리</th>
+					<th class="col-status" width="5%">상태</th>
 				</tr>
 			</thead>
 			<tbody id="report-table-body"></tbody>
@@ -101,6 +105,8 @@
 			</div>
 		</div>
 
-		<script type="module" src="list.js"></script>
+		<script src="list.js" type="module"></script>
+		<script src="libs/xlsx.full.min.js" type="module"></script>
+		<script src="libs/jszip.min.js" type="module"></script>
 	</body>
 </html>

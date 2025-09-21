@@ -5,6 +5,8 @@ import * as exporter from "./exporter.js";
 import { STATUS_OPTIONS } from "./js/constants.js";
 import { storageSyncGet, storageSyncSet } from "./js/chrome-api.js";
 
+let currentSortOrder = "desc"; // 기본 정렬 상태를 '내림차순'으로 설정
+
 document.addEventListener("DOMContentLoaded", () => {
 	let allReports = [];
 	let currentlyRenderedReports = [];
@@ -16,6 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
 	const statusFiltersContainer = document.getElementById("statusFilters");
 	const modal = document.getElementById("editModal");
 	const exportMenu = document.getElementById("exportMenu");
+	const sortAscBtn = document.getElementById("sortAscBtn");
+	const sortDescBtn = document.getElementById("sortDescBtn");
 
 	// --- 2. 렌더링 함수들 ---
 	function renderStatusFilters() {
@@ -33,11 +37,13 @@ document.addEventListener("DOMContentLoaded", () => {
 		currentlyRenderedReports = reports;
 		tableBody.innerHTML = "";
 		noReportsMsg.style.display = reports.length === 0 ? "block" : "none";
-		reports.forEach((report) => {
+		reports.forEach((report, index) => {
 			const reportNumber = allReports.findIndex(
 				(r) => r.uniqueId === report.uniqueId
 			);
-			const row = createReportRow(report, allReports.length - reportNumber);
+			// const row = createReportRow(report, allReports.length - reportNumber);
+			// tableBody.appendChild(row);
+			const row = createReportRow(report, reports.length - index); // Number in reverse order
 			tableBody.appendChild(row);
 		});
 	}
@@ -46,32 +52,34 @@ document.addEventListener("DOMContentLoaded", () => {
 		const row = document.createElement("tr");
 		row.dataset.id = report.uniqueId;
 		row.innerHTML = `
-            <td class="col-no">${displayIndex}</td>
-            <td class="col-date">${new Date(
-							report.createdAt
-						).toLocaleDateString()}</td>
-            <td class="col-category">${report.category || ""}</td>
-            <td class="col-title">${report.title || "(제목 없음)"}</td>
-            <td class="col-problem" title="${report.problem}">${
+        <td class="col-no">${displayIndex}</td>
+        <td class="col-no unique-id-cell" title="${report.uniqueId || ""}">${(
+			report.uniqueId || ""
+		).substring(0, 8)}...</td>
+        <td class="col-date">${new Date(report.createdAt).toLocaleString()}</td>
+        <td class="col-category">${report.category || ""}</td>
+        <td class="col-title">${report.title || "(제목 없음)"}</td>
+        <td class="col-problem" title="${report.problem}">${
 			report.problem || ""
 		}</td>
-            <td class="col-manage">
-                <button class="view-btn">보기/수정</button>
-                <button class="delete-btn">삭제</button>
-            </td>
-            <td class="col-status">
-                <select class="status-select">
-                    ${STATUS_OPTIONS.map(
-											(opt) =>
-												`<option value="${opt}" ${
-													(report.status || "접수완료") === opt
-														? "selected"
-														: ""
-												}>${opt}</option>`
-										).join("")}
-                </select>
-            </td>
-        `;
+        <td class="col-problem" title="${report.expected}">${
+			report.expected || ""
+		}</td>
+        <td class="col-manage">
+            <button class="view-btn">보기/수정</button>
+            <button class="delete-btn">삭제</button>
+        </td>
+        <td class="col-status">
+            <select class="status-select">
+                ${STATUS_OPTIONS.map(
+									(opt) =>
+										`<option value="${opt}" ${
+											(report.status || "접수완료") === opt ? "selected" : ""
+										}>${opt}</option>`
+								).join("")}
+            </select>
+        </td>
+    `;
 		return row;
 	}
 
@@ -92,7 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 		if (activeStatusFilter !== "all") {
 			filtered = filtered.filter(
-				(r) => (r.status || "접수완료") === activeStatusFilter
+				(r) => (r.status || "신규") === activeStatusFilter
 			);
 		}
 		if (searchTerm) {
@@ -102,6 +110,12 @@ document.addEventListener("DOMContentLoaded", () => {
 					(r.problem || "").toLowerCase().includes(searchTerm)
 			);
 		}
+		// **수정된 부분: 정렬 로직 추가**
+		filtered.sort((a, b) => {
+			const dateA = new Date(a.createdAt);
+			const dateB = new Date(b.createdAt);
+			return currentSortOrder === "asc" ? dateA - dateB : dateB - dateA;
+		});
 		renderTable(filtered);
 	}
 
@@ -147,8 +161,8 @@ document.addEventListener("DOMContentLoaded", () => {
 		modal.querySelector("#modalImage").src = report.imageData;
 		modal.querySelector("#modalCategory").value = report.category;
 		modal.querySelector("#modalTitle").value = report.title;
-		modal.querySelector("#modalProblem").textContent = report.problem;
-		modal.querySelector("#modalExpected").textContent = report.expected;
+		modal.querySelector("#modalProblem").value = report.problem;
+		modal.querySelector("#modalExpected").value = report.expected;
 		modal.style.display = "block";
 	}
 
@@ -172,7 +186,9 @@ document.addEventListener("DOMContentLoaded", () => {
 			closeModal();
 			applyFiltersAndRender(); // 수정 후 필터링된 화면에 바로 반영
 		} catch (error) {
-			alert("수정 중 오류가 발생했습니다.");
+			// alert("수정 중 오류가 발생했습니다.");
+			console.error("수정 실패 원인:", error);
+			alert("수정 중 오류가 발생했습니다. 개발자 도구의 콘솔을 확인해주세요.");
 		}
 	}
 
@@ -244,13 +260,31 @@ document.addEventListener("DOMContentLoaded", () => {
 			if (e.target === modal) closeModal();
 		});
 		exportMenu.addEventListener("click", handleExportClick);
+		// **수정된 부분: 정렬 버튼 이벤트 리스너 추가**
+		sortAscBtn.addEventListener("click", () => {
+			currentSortOrder = "asc";
+			sortAscBtn.classList.add("active");
+			sortDescBtn.classList.remove("active");
+			applyFiltersAndRender();
+		});
+
+		sortDescBtn.addEventListener("click", () => {
+			currentSortOrder = "desc";
+			sortDescBtn.classList.add("active");
+			sortAscBtn.classList.remove("active");
+			applyFiltersAndRender();
+		});
 	}
 
 	// --- 5. 애플리케이션 시작 ---
 	async function main() {
 		try {
-			await db.initDb();
+			// await db.initDb();
 			allReports = await db.getAllReports();
+
+			// **수정된 부분: 데이터 가져온 직후 캡처일시 내림차순 정렬 추가**
+			allReports.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
 			renderStatusFilters();
 			applyFiltersAndRender();
 			displayLastExportTime();
